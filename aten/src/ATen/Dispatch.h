@@ -66,7 +66,7 @@ TORCH_API void record_kernel_function_dtype(std::string name);
 #define AT_PRIVATE_CASE_TYPE_USING_HINT(enum_type, HINT, ...)           \
   case enum_type: {                                                     \
     AT_PRIVATE_CHECK_SELECTIVE_BUILD(enum_type);                        \
-    using HINT C10_UNUSED = c10::impl::ScalarTypeToCPPTypeT<enum_type>; \
+    C10_UNUSED using HINT = c10::impl::ScalarTypeToCPPTypeT<enum_type>; \
     return __VA_ARGS__();                                               \
   }
 
@@ -77,9 +77,9 @@ TORCH_API void record_kernel_function_dtype(std::string name);
   case enum_type: {                                                   \
     AT_PRIVATE_CHECK_SELECTIVE_BUILD(enum_type);                      \
     using scalar_t = scalar_type;                                     \
-    using underlying_t C10_UNUSED = typename scalar_t::underlying;    \
-    const auto& SCALAR_TYPE C10_UNUSED = enum_type;                   \
-    const auto& UNDERLYING_TYPE C10_UNUSED = toUnderlying(enum_type); \
+    C10_UNUSED using underlying_t = typename scalar_t::underlying;    \
+    C10_UNUSED const auto& SCALAR_TYPE = enum_type;                   \
+    C10_UNUSED const auto& UNDERLYING_TYPE = toUnderlying(enum_type); \
     return __VA_ARGS__();                                             \
   }
 
@@ -88,9 +88,9 @@ TORCH_API void record_kernel_function_dtype(std::string name);
   case enum_type: {                                                   \
     AT_PRIVATE_CHECK_SELECTIVE_BUILD(enum_type);                      \
     using scalar_t = scalar_type;                                     \
-    using underlying_t C10_UNUSED = typename scalar_t::underlying;    \
-    const auto& SCALAR_TYPE C10_UNUSED = enum_type;                   \
-    const auto& UNDERLYING_TYPE C10_UNUSED = toUnderlying(enum_type); \
+    C10_UNUSED using underlying_t = typename scalar_t::underlying;    \
+    C10_UNUSED const auto& SCALAR_TYPE = enum_type;                   \
+    C10_UNUSED const auto& UNDERLYING_TYPE = toUnderlying(enum_type); \
     C10_UNUSED int bit_width = bitwidth;                              \
     C10_UNUSED int64_t quant_min = qmin;                              \
     C10_UNUSED int64_t quant_max = qmax;                              \

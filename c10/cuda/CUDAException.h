@@ -40,7 +40,7 @@ class C10_CUDA_API CUDAError : public c10::Error {
   do {                                                         \
     const cudaError_t __err = EXPR;                            \
     if (C10_UNLIKELY(__err != cudaSuccess)) {                  \
-      auto error_unused C10_UNUSED = cudaGetLastError();       \
+      C10_UNUSED auto error_unused = cudaGetLastError();       \
       (void)error_unused;                                      \
       TORCH_WARN("CUDA warning: ", cudaGetErrorString(__err)); \
     }                                                          \
@@ -54,7 +54,7 @@ class C10_CUDA_API CUDAError : public c10::Error {
   do {                                                          \
     const cudaError_t __err = EXPR;                             \
     if (C10_UNLIKELY(__err != cudaSuccess)) {                   \
-      cudaError_t error_unused C10_UNUSED = cudaGetLastError(); \
+      C10_UNUSED cudaError_t error_unused = cudaGetLastError(); \
       (void)error_unused;                                       \
     }                                                           \
   } while (0)
@@ -62,7 +62,7 @@ class C10_CUDA_API CUDAError : public c10::Error {
 // Clear the last CUDA error
 #define C10_CUDA_CLEAR_ERROR()                                \
   do {                                                        \
-    cudaError_t error_unused C10_UNUSED = cudaGetLastError(); \
+    C10_UNUSED cudaError_t error_unused = cudaGetLastError(); \
     (void)error_unused;                                       \
   } while (0)
 

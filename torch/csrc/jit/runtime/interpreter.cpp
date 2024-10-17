@@ -240,7 +240,7 @@ struct InterpreterStateImpl : c10::intrusive_ptr_target {
     std::size_t initialSize_{stack_.size()};
   };
 
-  struct C10_UNUSED DoNothing {};
+  C10_UNUSED struct DoNothing {};
 
 #if defined(__GNUC__) || defined(__clang__)
 #define JIT_USE_COMPUTED_GOTO
