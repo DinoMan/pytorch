@@ -121,7 +121,7 @@ BW = FULL_BACKWARD
 
 # Helper to parse an action string like 1F0 into a tuple of (stage_index, computation_type, microbatch_index)
 _action_regex = re.compile(
-    r"(\d+)(F|BW|B|W|UNSHARD|RESHARD|SEND_F|RECV_F|SEND_B|RECV_B{0,1})(\d*)"
+    r"(\d+)(F|BW|B|W|UNSHARD|RESHARD|SEND_F|RECV_F|SEND_B|RECV_B){0,1}(\d*)"
 )
 
 
@@ -1025,9 +1025,14 @@ def _add_send_recv(
 
     def _has_comms(action: _Action) -> bool:
         if action.computation_type == F:
-            return action.stage_index != num_stages - 1
+            # TODO discrepancy
+            return action.stage_index != num_stages - 1 and stage_to_rank(
+                action.stage_index + 1
+            ) != stage_to_rank(action.stage_index)
         elif action.computation_type in (B, BW):
-            return action.stage_index != 0
+            return action.stage_index != 0 and stage_to_rank(
+                action.stage_index - 1
+            ) != stage_to_rank(action.stage_index)
         return False
 
     def _get_comms(action: _Action) -> Tuple[_Action, _Action]:
@@ -1050,22 +1055,38 @@ def _add_send_recv(
         if action is None:
             return True
         elif action.computation_type == F and not action.stage_index == 0:
-            expected_recv = _Action(
-                action.stage_index,
-                RECV_F if action.computation_type == F else RECV_B,
-                action.microbatch_index,
-            )
-            return expected_recv in prev_actions
+            for p in prev_actions:
+                if (
+                    p.computation_type == RECV_F
+                    and p.stage_index == action.stage_index
+                    and p.microbatch_index == action.microbatch_index
+                ):
+                    return True
+                elif (
+                    p.computation_type == FORWARD
+                    and p.stage_index == action.stage_index - 1
+                    and p.microbatch_index == action.microbatch_index
+                ):
+                    return True
+            return False
         elif (
             action.computation_type in (B, BW)
             and not action.stage_index == num_stages - 1
         ):
-            expected_recv = _Action(
-                action.stage_index,
-                RECV_F if action.computation_type == F else RECV_B,
-                action.microbatch_index,
-            )
-            return expected_recv in prev_actions
+            for p in prev_actions:
+                if (
+                    p.computation_type == RECV_B
+                    and p.stage_index == action.stage_index
+                    and p.microbatch_index == action.microbatch_index
+                ):
+                    return True
+                elif (
+                    p.computation_type == BACKWARD
+                    and p.stage_index == action.stage_index + 1
+                    and p.microbatch_index == action.microbatch_index
+                ):
+                    return True
+            return False
         else:
             return True
 
@@ -1073,6 +1094,9 @@ def _add_send_recv(
         progress = False
         # go in order of ranks even if dict keys aren't ordered
         for rank in sorted(compute_actions):
+            if rank not in compute_actions:
+                continue
+
             assert (
                 len(compute_actions[rank]) > 0
             ), f"{rank=}, {len(compute_actions[rank])=}"
